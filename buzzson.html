@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+
+        <!-- Babylon.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/ammo.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        var startRenderLoop = function (engine, canvas) {
+            engine.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        }
+
+        var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        BABYLON.DefaultLoadingScreen.prototype.displayLoadingUI = function () {
+            if (document.getElementById("customLoadingScreenDiv")) {
+                // Do not add a loading screen if there is already one
+                document.getElementById("customLoadingScreenDiv").style.display = "initial";
+                return;
+            }
+            this._loadingDiv = document.createElement("div");
+            this._loadingDiv.id = "customLoadingScreenDiv";
+            this._loadingDiv.innerHTML = "";
+            var customLoadingScreenCss = document.createElement('style');
+            customLoadingScreenCss.type = 'text/css';
+            customLoadingScreenCss.innerHTML = `
+            #customLoadingScreenDiv{
+                background-image:url('https://freefrontend.com/assets/img/css-loaders/loader.gif');
+                background-position:center;
+                background-color: #000000;
+                color: white;
+                font-size:30px;
+                text-align:center;
+            }
+            `;
+            document.getElementsByTagName('head')[0].appendChild(customLoadingScreenCss);
+            this._resizeLoadingUI();
+            window.addEventListener("resize", this._resizeLoadingUI);
+            document.body.appendChild(this._loadingDiv);
+        };
+        
+        BABYLON.DefaultLoadingScreen.prototype.hideLoadingUI = function(){
+            document.getElementById("customLoadingScreenDiv").style.display = "none";
+            console.log("scene is now loaded");
+        }
+        
+        var delayCreateScene = function () {
+            
+            engine.displayLoadingUI();
+            var scene = new BABYLON.Scene(engine);
+        
+               //metarials
+            
+            //renk
+            var renk = new BABYLON.PBRMaterial("renk", scene);
+            
+            renk.metallic=0;
+            renk.roughness=1;
+            renk.opacityTexture = new BABYLON.Texture("https://raw.githubusercontent.com/alidayioglu/nft3/main/opacity.png", scene);
+            
+            renk.transparencyMode = 3;
+            
+            //buzz
+            var buzz = new BABYLON.PBRMaterial("buzz",scene);
+        
+            buzz.metallic=1;
+            buzz.roughness=0.3;
+            buzz.albedoTexture = new BABYLON.Texture("https://raw.githubusercontent.com/alidayioglu/nft3/main/buzz/buzz_albedo-min.jpg", scene);
+            buzz.albedoTexture.vAng=Math.PI;
+            buzz.albedoTexture.wAng=Math.PI;
+        
+            buzz.ambientTexture = new BABYLON.Texture("https://raw.githubusercontent.com/alidayioglu/nft3/main/buzz/buzz_shadow-min.jpg", scene);
+            buzz.ambientTexture.vAng=Math.PI;
+            buzz.ambientTexture.wAng=Math.PI;
+        
+            //hdr mat
+        
+            var hdr = new BABYLON.PBRMaterial("buzz",scene);
+        
+            hdr.metallic=1;
+            hdr.roughness=0.3;
+            hdr.albedoTexture = new BABYLON.Texture("https://raw.githubusercontent.com/alidayioglu/nft3/main/white.jpg", scene);
+            hdr.albedoTexture.vAng=Math.PI;
+            hdr.albedoTexture.wAng=Math.PI;
+        
+            //platform renk
+            var platform_renk = new BABYLON.PBRMaterial("platform_renk",scene);
+            platform_renk.albedoColor = new BABYLON.Color3(0.01, 0.01, 0.01);
+        
+            platform_renk.metallic=1;
+            platform_renk.roughness=0.4;
+        
+            //yazilar
+            var yazilar = new BABYLON.PBRMaterial("yazilar",scene);
+            yazilar.albedoTexture = new BABYLON.Texture("https://raw.githubusercontent.com/alidayioglu/nft3/main/yazi.jpg", scene);
+            yazilar.albedoTexture.vAng=Math.PI;
+            yazilar.albedoTexture.wAng=Math.PI;
+        
+            yazilar.ambientTexture = new BABYLON.Texture("https://raw.githubusercontent.com/alidayioglu/nft3/main/yazi_shdw.jpg", scene);
+            yazilar.ambientTexture.vAng=Math.PI;
+            yazilar.ambientTexture.wAng=Math.PI;
+        
+            yazilar.metallic=1;
+            yazilar.roughness=0.3;
+        
+            //isik
+            var isiklar = new BABYLON.PBRMaterial("isiklar",scene);
+            isiklar.emissiveColor = new BABYLON.Color3(0.22, 0.69, 0.87);
+            isiklar.metallic=1;
+            isiklar.roughness=0.3;
+        
+                //HDR
+            var hdrTexture = new BABYLON.CubeTexture.CreateFromPrefilteredData("https://raw.githubusercontent.com/alidayioglu/nft3/main/white.jpg", scene);
+            scene.environmentTexture = hdrTexture;
+        
+                // Skybox
+        	var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:1000.0}, scene);
+        	var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+        	skyboxMaterial.backFaceCulling = false;
+        	skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        	skybox.material = skyboxMaterial;
+        
+               // This creates and positions a free camera (non-mesh)
+        var camera = new BABYLON.ArcRotateCamera("Camera", 3 * Math.PI / 2, -Math.PI / 2, 50, BABYLON.Vector3.Zero(), scene);
+        
+        	        camera.attachControl(canvas, true);
+        
+                    camera.useFramingBehavior = true; 
+        
+                    camera.upperRadiusLimit = 4;
+        
+                     camera.lowerRadiusLimit = 3;
+            
+                    camera.upperBetaLimit = Math.PI / 2;
+        
+                    	var box = BABYLON.Mesh.CreateBox("box", 1.5, scene);
+            box.position = new BABYLON.Vector3(0, 1, 0);
+            scene.getMeshByName('box').material = renk
+        
+            camera.setTarget(box);
+              
+        
+            BABYLON.SceneLoader.ImportMesh(
+                "",
+                "https://raw.githubusercontent.com/alidayioglu/nft3/main/",
+                "Buzz.glb",
+                scene,
+                function () {          
+               scene.getMeshByName('bacak').material = buzz
+               scene.getMeshByName('body').material = buzz
+               scene.getMeshByName('rocket').material = buzz
+               scene.getMeshByName('yuz').material = buzz
+               scene.getMeshByName('platform').material = platform_renk
+               scene.getMeshByName('yazi').material = yazilar
+               scene.getMeshByName('isik').material = isiklar
+                    engine.hideLoadingUI();
+                }
+            );
+        
+            return scene;
+        };
+                window.initFunction = async function() {
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+        window.scene = delayCreateScene();};
+        initFunction().then(() => {sceneToRender = scene                    
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
